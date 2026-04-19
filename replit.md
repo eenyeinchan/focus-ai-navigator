@@ -2,7 +2,7 @@
 
 ## Overview
 
-Flowmind is an AI-first productivity workspace — a sidegrade to Notion/Obsidian with built-in prioritization and focus control. Users write notes (meetings, ideas, planning) and the AI extracts tasks, finds deadlines, prioritizes work, and suggests next actions. Includes a focus layer (browser extension concept) that blocks distracting websites during focus sessions.
+Flowmind is an AI-first productivity workspace — a sidegrade to Notion/Obsidian with built-in prioritization and focus control. Users write notes (meetings, ideas, planning) and the AI extracts tasks, finds deadlines, prioritizes work, and suggests next actions. Includes a focus layer (browser extension) that blocks distracting websites during focus sessions.
 
 ## Stack
 
@@ -24,6 +24,7 @@ Flowmind is an AI-first productivity workspace — a sidegrade to Notion/Obsidia
 artifacts/
   flowmind/        # React + Vite frontend (previewPath: /)
   api-server/      # Express 5 backend (previewPath: /api)
+browser-extension/ # Chrome extension for website blocking
 lib/
   db/              # PostgreSQL schema (notes, tasks, focus_sessions, blocked_sites)
   api-spec/        # OpenAPI spec → codegen
