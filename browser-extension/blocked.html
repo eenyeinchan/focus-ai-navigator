@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Site Blocked - Focus Mode Active</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    .focus-message {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+    }
+    .timer {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    button {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 25px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚫 Site Blocked</h1>
+    <div class="focus-message">
+      <p>This website is blocked during your focus session.</p>
+      <p>Stay focused on your goals!</p>
+    </div>
+    <div class="timer" id="timer">Loading session info...</div>
+    <button onclick="goBack()">Go Back to Safe Browsing</button>
+  </div>
+
+  <script>
+    // Get session info and display remaining time
+    async function loadSessionInfo() {
+      try {
+        const response = await fetch('http://localhost:3000/api/focus-sessions');
+        const sessions = await response.json();
+        const activeSession = sessions.find(s => s.status === 'active');
+
+        if (activeSession) {
+          const startTime = new Date(activeSession.startedAt);
+          const durationMs = activeSession.durationMinutes * 60 * 1000;
+          const endTime = new Date(startTime.getTime() + durationMs);
+          const now = new Date();
+
+          if (now < endTime) {
+            const remainingMs = endTime - now;
+            const remainingMinutes = Math.ceil(remainingMs / (1000 * 60));
+            document.getElementById('timer').textContent =
+              `Focus session ends in ${remainingMinutes} minutes`;
+          } else {
+            document.getElementById('timer').textContent =
+              'Focus session has ended - refresh to continue';
+          }
+        }
+      } catch (error) {
+        document.getElementById('timer').textContent = 'Unable to load session info';
+      }
+    }
+
+    function goBack() {
+      // Go back in history or redirect to a safe page
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = 'about:blank';
+      }
+    }
+
+    loadSessionInfo();
+  </script>
+</body>
+</html>
