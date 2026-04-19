@@ -1,0 +1,743 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Flowmind AI productivity workspace API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: notes
+    description: Notes management
+  - name: tasks
+    description: Task management
+  - name: focus
+    description: Focus sessions
+  - name: dashboard
+    description: Dashboard aggregates
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /notes:
+    get:
+      operationId: listNotes
+      tags: [notes]
+      summary: List all notes
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+    post:
+      operationId: createNote
+      tags: [notes]
+      summary: Create a new note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNoteBody"
+      responses:
+        "201":
+          description: Created note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+
+  /notes/{id}:
+    get:
+      operationId: getNote
+      tags: [notes]
+      summary: Get a note by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Note details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateNote
+      tags: [notes]
+      summary: Update a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNoteBody"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+    delete:
+      operationId: deleteNote
+      tags: [notes]
+      summary: Delete a note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /notes/{id}/analyze:
+    post:
+      operationId: analyzeNote
+      tags: [notes]
+      summary: Run AI analysis on a note to extract tasks and insights
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: AI analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoteAnalysis"
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List all tasks
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [todo, in_progress, done]
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+        - name: noteId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskBody"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{id}:
+    put:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskBody"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /focus-sessions:
+    get:
+      operationId: listFocusSessions
+      tags: [focus]
+      summary: List focus sessions
+      responses:
+        "200":
+          description: List of focus sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FocusSession"
+    post:
+      operationId: createFocusSession
+      tags: [focus]
+      summary: Start a new focus session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFocusSessionBody"
+      responses:
+        "201":
+          description: Created focus session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSession"
+
+  /focus-sessions/{id}:
+    put:
+      operationId: updateFocusSession
+      tags: [focus]
+      summary: Update a focus session (end it, update status)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFocusSessionBody"
+      responses:
+        "200":
+          description: Updated focus session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSession"
+
+  /blocked-sites:
+    get:
+      operationId: listBlockedSites
+      tags: [focus]
+      summary: List all blocked site patterns
+      responses:
+        "200":
+          description: List of blocked sites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlockedSite"
+    post:
+      operationId: createBlockedSite
+      tags: [focus]
+      summary: Add a site to block list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBlockedSiteBody"
+      responses:
+        "201":
+          description: Created blocked site
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockedSite"
+
+  /blocked-sites/{id}:
+    delete:
+      operationId: deleteBlockedSite
+      tags: [focus]
+      summary: Remove a site from block list
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get productivity summary stats
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/action-plan:
+    get:
+      operationId: getActionPlan
+      tags: [dashboard]
+      summary: Get AI-generated prioritized action plan from recent notes and tasks
+      responses:
+        "200":
+          description: Action plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionPlan"
+
+  /dashboard/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent activity feed
+      responses:
+        "200":
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Note:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [general, meeting, idea, planning]
+        tags:
+          type: array
+          items:
+            type: string
+        taskCount:
+          type: integer
+        analyzedAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - content
+        - type
+        - tags
+        - taskCount
+        - analyzedAt
+        - createdAt
+        - updatedAt
+
+    CreateNoteBody:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [general, meeting, idea, planning]
+        tags:
+          type: array
+          items:
+            type: string
+      required:
+        - title
+        - content
+        - type
+
+    UpdateNoteBody:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [general, meeting, idea, planning]
+        tags:
+          type: array
+          items:
+            type: string
+
+    NoteAnalysis:
+      type: object
+      properties:
+        noteId:
+          type: integer
+        summary:
+          type: string
+        extractedTasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        keyInsights:
+          type: array
+          items:
+            type: string
+        suggestedNextActions:
+          type: array
+          items:
+            type: string
+      required:
+        - noteId
+        - summary
+        - extractedTasks
+        - keyInsights
+        - suggestedNextActions
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [critical, high, medium, low]
+        dueDate:
+          type: string
+          nullable: true
+        noteId:
+          type: integer
+          nullable: true
+        noteTitle:
+          type: string
+          nullable: true
+        aiGenerated:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - description
+        - status
+        - priority
+        - dueDate
+        - noteId
+        - noteTitle
+        - aiGenerated
+        - createdAt
+        - updatedAt
+
+    CreateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [critical, high, medium, low]
+        dueDate:
+          type: string
+          nullable: true
+        noteId:
+          type: integer
+          nullable: true
+      required:
+        - title
+        - priority
+
+    UpdateTaskBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+        priority:
+          type: string
+          enum: [critical, high, medium, low]
+        dueDate:
+          type: string
+          nullable: true
+
+    FocusSession:
+      type: object
+      properties:
+        id:
+          type: integer
+        goal:
+          type: string
+        durationMinutes:
+          type: integer
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+        blockedSites:
+          type: array
+          items:
+            type: string
+        startedAt:
+          type: string
+        endedAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - goal
+        - durationMinutes
+        - status
+        - blockedSites
+        - startedAt
+        - endedAt
+        - createdAt
+
+    CreateFocusSessionBody:
+      type: object
+      properties:
+        goal:
+          type: string
+        durationMinutes:
+          type: integer
+        blockedSites:
+          type: array
+          items:
+            type: string
+      required:
+        - goal
+        - durationMinutes
+
+    UpdateFocusSessionBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+        endedAt:
+          type: string
+
+    BlockedSite:
+      type: object
+      properties:
+        id:
+          type: integer
+        pattern:
+          type: string
+        label:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - pattern
+        - label
+        - createdAt
+
+    CreateBlockedSiteBody:
+      type: object
+      properties:
+        pattern:
+          type: string
+        label:
+          type: string
+      required:
+        - pattern
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalNotes:
+          type: integer
+        totalTasks:
+          type: integer
+        completedTasks:
+          type: integer
+        criticalTasks:
+          type: integer
+        activeSession:
+          $ref: "#/components/schemas/FocusSession"
+          nullable: true
+        focusMinutesToday:
+          type: integer
+        tasksCompletedToday:
+          type: integer
+        notesThisWeek:
+          type: integer
+      required:
+        - totalNotes
+        - totalTasks
+        - completedTasks
+        - criticalTasks
+        - activeSession
+        - focusMinutesToday
+        - tasksCompletedToday
+        - notesThisWeek
+
+    ActionPlan:
+      type: object
+      properties:
+        generatedAt:
+          type: string
+        topPriorities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        insights:
+          type: array
+          items:
+            type: string
+        suggestedFocusDuration:
+          type: integer
+        nextBestAction:
+          type: string
+      required:
+        - generatedAt
+        - topPriorities
+        - insights
+        - suggestedFocusDuration
+        - nextBestAction
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [note_created, note_analyzed, task_created, task_completed, focus_started, focus_completed]
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+      required:
+        - id
+        - type
+        - title
+        - description
+        - timestamp
